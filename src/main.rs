@@ -25,7 +25,7 @@ struct Transition {
 impl FiniteStateMachine {
     pub fn new() -> FiniteStateMachine {
         return FiniteStateMachine {
-           // nameFSM,
+            // nameFSM,
             transitions: Vec::new(),
             nodes: Vec::new()
         };
@@ -41,68 +41,108 @@ impl FiniteStateMachine {
         return index;
     }
 
-    pub fn addTransition(&mut self, letter: char, outputNodes: NodeIndex, inputNodes: NodeIndex) -> TransitionIndex {
+    pub fn addTransition(&mut self, letter: char, inputNodes: NodeIndex, outputNodes: NodeIndex) -> TransitionIndex {
         let index: usize = self.transitions.len();
-        self.transitions.push(Transition {
+        let new_trans = Transition {
             letter,
             outputNodes,
             inputNodes,
-        });
+        };
+        self.transitions.push(new_trans);
+
+        self.nodes[inputNodes].outputTransition.push(index);
+        self.nodes[outputNodes].inputTransition.push(index);
         return index;
     }
 
 
     pub fn existTransition(&mut self, transitionTest: TransitionIndex, c_char: char) -> bool {
-
-        if self.transitions[transitionTest].letter == c_char {
-            return true;
-        } else {
-            return false;
-        }
+        return self.transitions[transitionTest].letter == c_char;
     }
 
-    pub fn displayNode(&self,nodeI: NodeIndex) {
-        for nodeNumber in &self.nodes{
-            print!("{} {}",nodeNumber.name, " ");
-        }
-    }
-
-    pub fn displayTransition(&self,nodeI: NodeIndex) {
-        print!("{} {}", self.nodes[nodeI].name, " ");
-
-        for nodeNumber in &self.nodes{
-            print!("{} {}",nodeNumber.name, " ");
+    pub fn displayTransition(&self) {
+        println!("\n");
+        for transitionNumber in &self.transitions {
+            println!("{} {} {} {} {}", self.nodes[transitionNumber.inputNodes].name, "-", transitionNumber.letter, "->", self.nodes[transitionNumber.outputNodes].name);
         }
     }
 
     pub fn displayFSM(&self) {
-        println!("{}","Finite state machine display : ");
+        println!("{}", "\nDisplay Finite state machine : \n");
+        print!("State : ");
 
-        for nodeNumber in &self.nodes{
-            print!("{} {}",nodeNumber.name, " ");
+        for nodeNumber in &self.nodes {
+            print!("{} {}", nodeNumber.name, " ");
         }
+
+        self.displayTransition()
     }
-}
-/*
-pub fn display_petrinet(&self) {
-    for edge in &self.edges {
-        match edge.orientation {
-            Orientation::Place => {
-                println!("{place} -({w})-> {trans}", trans = &self.transitions[edge.transition].name, place = &self.places[edge.place].name, w = edge.weight);
-            },
-            Orientation::Transition => {
-                println!("{trans} -({w})-> {place}", trans = &self.transitions[edge.transition].name, place = &self.places[edge.place].name, w = edge.weight);
+
+
+    pub fn process_fsm(&mut self, nodeIndex: NodeIndex, word: &str) -> Vec<(usize, usize)> {
+        let mut vec_edge = Vec::new();
+
+        let octets = word.as_bytes();
+
+        let mut iterator_word = 0;
+        let mut iterator_trans = 0;
+        let mut state = 0;
+
+        for (iterator_word, &char) in octets.iter().enumerate() {
+            let char_trans = self.transitions[self.nodes[nodeIndex].outputTransition[iterator_trans]].letter;
+
+            while iterator_trans < self.nodes[nodeIndex].outputTransition.len() && char_trans != char as char {
+                iterator_trans += 1;
+            }
+            if self.transitions[iterator_trans].outputNodes < self.nodes.len() {
+                vec_edge.push((state,self.transitions[iterator_trans].outputNodes));
+                state = iterator_trans;
+                iterator_trans = 0;
             }
         }
+
+        if vec_edge.len() < word.len(){
+            println!("Pas de chemin complet trouver pour ce mot.")
+        } else {
+            println!("Chemin trouvé pour ce mot.")
+        }
+        return vec_edge;
+
     }
-}*/
+
+    fn print_vec(mut vec : Vec<Vec<&str>>) {
+        let state_nb = vec.len();
+
+        for i in 0..state_nb {
+            for j in 0..state_nb {
+                print!("{}", vec[i][j]);
+            }
+            println!();
+        }
+        println!();
+    }
+
+
+}
+/*
+       for edge_index in &self.transitions[trans_index].input_edges {
+            let place_index = &self.edges[*edge_index].place;
+            self.places[*place_index].tokens -= &self.edges[*edge_index].weight;
+        }
+        for edge_index in &self.transitions[trans_index].output_edges {
+            let place_index = &self.edges[*edge_index].place;
+            self.places[*place_index].tokens += &self.edges[*edge_index].weight;
+        }
+    }*/
+
+
 
 fn main() {
 
     let mut test = FiniteStateMachine::new();
-    let name = 1;
-    let name2 = 2;
-    let name3 = 3;
+    let name = 0;
+    let name2 = 1;
+    let name3 = 2;
 
     test.addNode(name);
     test.addNode(name2);
@@ -115,4 +155,13 @@ fn main() {
 
     test.displayFSM();
 
+
+
+
+    let word1 = "acd";
+    let mut result = test.process_fsm(0,word1);
+    let lenght = result.len();
+    print!("Taille du chemin pour ce mot.");
+    print!("{}",lenght);
+    dbg!(result);
 }
