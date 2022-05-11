@@ -3,9 +3,12 @@ use std::os::raw::c_char;
 pub type NodeIndex = usize;
 pub type TransitionIndex = usize;
 
+struct NamedElement{
+    name: String
+}
 
 struct FiniteStateMachine {
-    //nameFSM: String,
+    nameFSM: String,
     transitions: Vec<Transition>,
     nodes: Vec<Node>
 }
@@ -23,9 +26,9 @@ struct Transition {
 }
 
 impl FiniteStateMachine {
-    pub fn new() -> FiniteStateMachine {
+    pub fn new(nameFSM: &str) -> FiniteStateMachine {
         return FiniteStateMachine {
-            // nameFSM,
+            nameFSM: nameFSM.into(),
             transitions: Vec::new(),
             nodes: Vec::new()
         };
@@ -139,7 +142,7 @@ impl FiniteStateMachine {
 
 fn main() {
 
-    let mut test = FiniteStateMachine::new();
+    let mut test = FiniteStateMachine::new("Test");
     let name = 0;
     let name2 = 1;
     let name3 = 2;
@@ -154,9 +157,6 @@ fn main() {
     test.addTransition('d',2,2);
 
     test.displayFSM();
-
-
-
 
     let word1 = "acd";
     let mut result = test.process_fsm(0,word1);
