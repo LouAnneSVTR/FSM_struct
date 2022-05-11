@@ -15,14 +15,14 @@ struct FiniteStateMachine {
 
 struct Node {
     pub name: i32,
-    outputTransition: Vec<TransitionIndex>,
-    inputTransition: Vec<TransitionIndex>
+    outputTransitions: Vec<TransitionIndex>,
+    inputTransitions: Vec<TransitionIndex>
 }
 
 struct Transition {
     pub letter: char,
-    outputNodes: NodeIndex,
-    inputNodes: NodeIndex,
+    outputNode: NodeIndex,
+    inputNode: NodeIndex,
 }
 
 impl FiniteStateMachine {
@@ -38,23 +38,23 @@ impl FiniteStateMachine {
         let index: usize = self.nodes.len();
         self.nodes.push(Node {
             name,
-            outputTransition: Vec::new(),
-            inputTransition: Vec::new(),
+            outputTransitions: Vec::new(),
+            inputTransitions: Vec::new(),
         });
         return index;
     }
 
-    pub fn addTransition(&mut self, letter: char, inputNodes: NodeIndex, outputNodes: NodeIndex) -> TransitionIndex {
+    pub fn addTransition(&mut self, letter: char, inputNode: NodeIndex, outputNode: NodeIndex) -> TransitionIndex {
         let index: usize = self.transitions.len();
         let new_trans = Transition {
             letter,
-            outputNodes,
-            inputNodes,
+            outputNode,
+            inputNode,
         };
         self.transitions.push(new_trans);
 
-        self.nodes[inputNodes].outputTransition.push(index);
-        self.nodes[outputNodes].inputTransition.push(index);
+        self.nodes[inputNode].outputTransitions.push(index);
+        self.nodes[outputNode].inputTransitions.push(index);
         return index;
     }
 
@@ -66,7 +66,7 @@ impl FiniteStateMachine {
     pub fn displayTransition(&self) {
         println!("\n");
         for transitionNumber in &self.transitions {
-            println!("{} {} {} {} {}", self.nodes[transitionNumber.inputNodes].name, "-", transitionNumber.letter, "->", self.nodes[transitionNumber.outputNodes].name);
+            println!("{} {} {} {} {}", self.nodes[transitionNumber.inputNode].name, "-", transitionNumber.letter, "->", self.nodes[transitionNumber.outputNode].name);
         }
     }
 
@@ -92,13 +92,13 @@ impl FiniteStateMachine {
         let mut state = 0;
 
         for (iterator_word, &char) in octets.iter().enumerate() {
-            let char_trans = self.transitions[self.nodes[nodeIndex].outputTransition[iterator_trans]].letter;
+            let char_trans = self.transitions[self.nodes[nodeIndex].outputTransitions[iterator_trans]].letter;
 
-            while iterator_trans < self.nodes[nodeIndex].outputTransition.len() && char_trans != char as char {
+            while iterator_trans < self.nodes[nodeIndex].outputTransitions.len() && char_trans != char as char {
                 iterator_trans += 1;
             }
-            if self.transitions[iterator_trans].outputNodes < self.nodes.len() {
-                vec_edge.push((state,self.transitions[iterator_trans].outputNodes));
+            if self.transitions[iterator_trans].outputNode < self.nodes.len() {
+                vec_edge.push((state,self.transitions[iterator_trans].outputNode));
                 state = iterator_trans;
                 iterator_trans = 0;
             }
